@@ -28,6 +28,9 @@ namespace AgentPathPlanning
         private const int CELL_HEIGHT = 60;
         private const int CELL_WIDTH = 60;
 
+        private GridWorld gridWorld;
+        private Agent agent;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -52,11 +55,11 @@ namespace AgentPathPlanning
             if (result == true)
             {
                 // Setup the grid world
-                GridWorld gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName), CELL_HEIGHT, CELL_WIDTH);
+                gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName), CELL_HEIGHT, CELL_WIDTH);
 
 
                 // Setup the grid world
-                Agent agent = new Agent(grid, CELL_HEIGHT, CELL_WIDTH, 0, 0);
+                agent = new Agent(grid, CELL_HEIGHT, CELL_WIDTH, 0, 0);
             }
         }
 

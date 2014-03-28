@@ -31,6 +31,7 @@ namespace AgentPathPlanning
         {
             ROWS = cells.GetLength(0);
             COLUMNS = cells.GetLength(1);
+            this.cells = cells;
             
             // Build the cells
             for (int i = 0; i < ROWS; i++)
@@ -51,7 +52,7 @@ namespace AgentPathPlanning
 
                     rectangle.Stroke = CELL_STROKE_COLOR;
 
-                    if (cells[i, j].IsObstacle())
+                    if (this.cells[i, j].IsObstacle())
                     {
                         rectangle.Fill = OBSTACLE_CELL_BACKGROUND_COLOR;
                     }
@@ -60,9 +61,9 @@ namespace AgentPathPlanning
                         rectangle.Fill = UNOCCUPIED_CELL_BACKGROUND_COLOR;
                     }
 
-                    cells[i, j].SetRectangle(rectangle);
+                    this.cells[i, j].SetRectangle(rectangle);
 
-                    grid.Children.Add(cells[i, j].GetRectangle());
+                    grid.Children.Add(this.cells[i, j].GetRectangle());
                 }
             }
         }
@@ -87,8 +88,27 @@ namespace AgentPathPlanning
             return currentColumnIndex;
         }
 
-        public bool CanMove(Direction direction)
+        /// <summary>
+        /// Determines if a cell specified by row and column indices is available to move towards.
+        /// </summary>
+        /// <param name="rowIndex">The row index</param>
+        /// <param name="columnIndex">The column index</param>
+        /// <returns>true if the cell can be moved to by an agent; false otherwise</returns>
+        public bool CanMove(int rowIndex, int columnIndex)
         {
+            // Check for out of bounds indices
+            if (rowIndex < 0 || ROWS - 1 < rowIndex || columnIndex < 0 || COLUMNS - 1 < columnIndex)
+            {
+                return false;
+            }
+
+            // Check if this index is an obstacle
+            if (cells[rowIndex, columnIndex].IsObstacle())
+            {
+                return false;
+            }
+
+            // Inbound and not an obstacle: return true
             return true;
         }
     }
