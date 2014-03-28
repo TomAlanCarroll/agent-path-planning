@@ -21,8 +21,12 @@ namespace AgentPathPlanning
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
-    {        
+    {
         private const double UPDATE_FREQUENCY = 0.5;
+
+        // Cell size
+        private const int CELL_HEIGHT = 60;
+        private const int CELL_WIDTH = 60;
 
         public MainWindow()
         {
@@ -48,7 +52,11 @@ namespace AgentPathPlanning
             if (result == true)
             {
                 // Setup the grid world
-                GridWorld gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName));
+                GridWorld gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName), CELL_HEIGHT, CELL_WIDTH);
+
+
+                // Setup the grid world
+                Agent agent = new Agent(grid, CELL_HEIGHT, CELL_WIDTH, 0, 0);
             }
         }
 

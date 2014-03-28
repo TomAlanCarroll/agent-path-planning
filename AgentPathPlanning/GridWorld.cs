@@ -18,10 +18,6 @@ namespace AgentPathPlanning
         private int ROWS = 10;
         private int COLUMNS = 10;
 
-        // Cell size
-        private const int CELL_HEIGHT = 60;
-        private const int CELL_WIDTH = 60;
-
         // Cell colors (RGB byte arrays)
         private SolidColorBrush UNOCCUPIED_CELL_BACKGROUND_COLOR = new SolidColorBrush(Color.FromRgb(244, 244, 244));
         private SolidColorBrush OCCUPIED_CELL_BACKGROUND_COLOR = new SolidColorBrush(Color.FromRgb(218, 164, 160));
@@ -31,11 +27,11 @@ namespace AgentPathPlanning
         private int currentRowIndex = 0;
         private int currentColumnIndex = 0;
 
-        public GridWorld(Grid grid, Cell[,] cells)
+        public GridWorld(Grid grid, Cell[,] cells, int cellHeight, int cellWidth)
         {
             ROWS = cells.GetLength(0);
             COLUMNS = cells.GetLength(1);
-
+            
             // Build the cells
             for (int i = 0; i < ROWS; i++)
             {
@@ -45,13 +41,13 @@ namespace AgentPathPlanning
 
                     rectangle.Name = "cell" + i + j;
 
-                    rectangle.Height = CELL_HEIGHT;
-                    rectangle.Width = CELL_WIDTH;
+                    rectangle.Height = cellHeight;
+                    rectangle.Width = cellWidth;
 
                     rectangle.VerticalAlignment = VerticalAlignment.Top;
                     rectangle.HorizontalAlignment = HorizontalAlignment.Left;
 
-                    rectangle.Margin = new Thickness(j * CELL_WIDTH, i * CELL_HEIGHT, 0, 0);
+                    rectangle.Margin = new Thickness(j * cellWidth, i * cellHeight, 0, 0);
 
                     rectangle.Stroke = CELL_STROKE_COLOR;
 
