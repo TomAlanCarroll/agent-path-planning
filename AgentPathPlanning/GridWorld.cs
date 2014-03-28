@@ -27,6 +27,9 @@ namespace AgentPathPlanning
         private int currentRowIndex = 0;
         private int currentColumnIndex = 0;
 
+        private int[] agentStartingPosition;
+        private int[] rewardPosition;
+
         public GridWorld(Grid grid, Cell[,] cells, int cellHeight, int cellWidth)
         {
             ROWS = cells.GetLength(0);
@@ -38,6 +41,22 @@ namespace AgentPathPlanning
             {
                 for (int j = 0; j < COLUMNS; j++)
                 {
+                    // Check if this is an agent/reward
+                    if (this.cells[i, j].IsAgentStartingCell())
+                    {
+                        this.agentStartingPosition = new int[2];
+                        this.agentStartingPosition[0] = i;
+                        this.agentStartingPosition[1] = j;
+                    }
+
+                    if (this.cells[i, j].IsRewardCell())
+                    {
+                        this.rewardPosition = new int[2];
+                        this.rewardPosition[0] = i;
+                        this.rewardPosition[1] = j;
+                    }
+
+                    // Make a rectangle for the grid
                     Rectangle rectangle = new Rectangle();
 
                     rectangle.Name = "cell" + i + j;
@@ -86,6 +105,16 @@ namespace AgentPathPlanning
         public int GetCurrentColumnIndex()
         {
             return currentColumnIndex;
+        }
+
+        public int[] GetAgentStartingPosition()
+        {
+            return agentStartingPosition;
+        }
+
+        public int[] GetRewardPosition()
+        {
+            return rewardPosition;
         }
 
         /// <summary>

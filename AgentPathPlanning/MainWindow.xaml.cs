@@ -22,7 +22,7 @@ namespace AgentPathPlanning
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const double UPDATE_FREQUENCY = 0.5;
+        private const double UPDATE_FREQUENCY = 0.2;
 
         // Cell size
         private const int CELL_HEIGHT = 60;
@@ -30,6 +30,7 @@ namespace AgentPathPlanning
 
         private GridWorld gridWorld;
         private Agent agent;
+        private Reward reward;
 
         public MainWindow()
         {
@@ -57,9 +58,25 @@ namespace AgentPathPlanning
                 // Setup the grid world
                 gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName), CELL_HEIGHT, CELL_WIDTH);
 
+                // Setup the agent
+                if (gridWorld.GetAgentStartingPosition() != null && gridWorld.GetAgentStartingPosition().Length == 2)
+                {
+                    agent = new Agent(grid, CELL_HEIGHT, CELL_WIDTH, gridWorld.GetAgentStartingPosition()[0], gridWorld.GetAgentStartingPosition()[1]);
+                }
+                else
+                {
+                    MessageBox.Show("Error: The agent starting position must be specified in the grid map file with the number 1. Please correct and try again.");
+                }
 
-                // Setup the grid world
-                agent = new Agent(grid, CELL_HEIGHT, CELL_WIDTH, 0, 0);
+                // Setup the reward
+                if (gridWorld.GetRewardPosition() != null && gridWorld.GetRewardPosition().Length == 2)
+                {
+                    reward = new Reward(grid, CELL_HEIGHT, CELL_WIDTH, gridWorld.GetRewardPosition()[0], gridWorld.GetRewardPosition()[1]);
+                }
+                else
+                {
+                    MessageBox.Show("Error: The reward starting position must be specified in the grid map file with the number 2. Please correct and try again.");
+                }
             }
         }
 

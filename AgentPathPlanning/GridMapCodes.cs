@@ -8,6 +8,8 @@ namespace AgentPathPlanning
 {
     public enum GridMapCodes
     {
-        OBSTACLE=1
+        OBSTACLE=0,
+        AGENT=1,
+        REWARD=2
     }
 }

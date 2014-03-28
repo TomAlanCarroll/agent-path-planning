@@ -70,6 +70,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Cell.cs" />
+    <Compile Include="Reward.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="GridMapCodes.cs" />
     <Compile Include="GridMapParser.cs" />
@@ -97,6 +98,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="GridMaps\GridWorld1.csv" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -107,7 +109,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Grid Maps\" />
+    <Folder Include="SearchAlgorithms\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\walle.png">

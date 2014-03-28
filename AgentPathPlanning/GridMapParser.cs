@@ -30,18 +30,28 @@ namespace AgentPathPlanning
                     for (int i = 0; i < splitLine.Length; i++)
                     {
                         bool isObstacle = false;
+                        bool isAgentStartingCell = false;
+                        bool isRewardCell = false;
 
                         if (splitLine[i].Contains(((int)GridMapCodes.OBSTACLE).ToString()))
                         {
                             isObstacle = true;
                         }
+                        else if (splitLine[i].Contains(((int)GridMapCodes.AGENT).ToString()))
+                        {
+                            isAgentStartingCell = true;
+                        }
+                        else if (splitLine[i].Contains(((int)GridMapCodes.REWARD).ToString()))
+                        {
+                            isRewardCell = true;
+                        }
 
-                        cells[rowCounter, i] = new Cell(rowCounter, i, isObstacle);
+                        cells[rowCounter, i] = new Cell(rowCounter, i, isObstacle, isAgentStartingCell, isRewardCell);
                     }
 
                     if (rowCounter > 0 && splitLine.Length != previousLineCellCount && rowCounter <= previousLineCellCount)
                     {
-                        throw new FormatException("Error: Uneven row/column size(s) were found in the CSV file. Please correct and try again");
+                        throw new FormatException("Error: Uneven row/column size(s) were found in the CSV file. Please correct and try again.");
                     }
                     else
                     {
