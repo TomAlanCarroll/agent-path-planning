@@ -1,0 +1,17 @@
+﻿<Window x:Class="AgentPathPlanning.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Agent Path Planning Simulator" Height="700" Width="700">
+    <Grid x:Name="grid" HorizontalAlignment="Center" Height="600" VerticalAlignment="Center" Width="600" Initialized="Grid_Initialized" Margin="0,40,0,0">
+        <Label Content="Algorithm:" HorizontalAlignment="Left" Margin="-4,-40,0,0" VerticalAlignment="Top"/>
+
+        <RadioButton x:Name="AStarRadioButton" Content="A*" HorizontalAlignment="Left" Margin="72,-47,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.389,0.738" Width="30" GroupName="algorithm" IsChecked="True"/>
+        <RadioButton x:Name="QLearningRadioButton" Content="Q-Learning" HorizontalAlignment="Left" Margin="72,-26,0,0" VerticalAlignment="Top" GroupName="algorithm"/>
+
+        <Button x:Name="LoadGridButton" Content="Load Grid File..." HorizontalAlignment="Left" Margin="166,-40,0,0" VerticalAlignment="Top" Width="125" Click="LoadGridButton_Click"/>
+        <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="502,-40,0,0" VerticalAlignment="Top" Width="46" Click="StartButton_Click"/>
+        <Button x:Name="StopButton" Content="Stop" HorizontalAlignment="Left" Margin="553,-40,0,0" VerticalAlignment="Top" Width="46" Click="StopButton_Click"/>
+
+    </Grid>
+
+</Window>
