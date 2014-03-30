@@ -65,9 +65,19 @@ namespace AgentPathPlanning
             return rowIndex;
         }
 
+        public void SetRowIndex(int rowIndex)
+        {
+            this.rowIndex = rowIndex;
+        }
+
         public int GetColumnIndex()
         {
             return columnIndex;
+        }
+
+        public void SetColumnIndex(int columnIndex)
+        {
+            this.columnIndex = columnIndex;
         }
 
         /// <summary>
@@ -79,48 +89,27 @@ namespace AgentPathPlanning
         public bool Move(GridWorld gridWorld, Direction direction)
         {
             // Move in the provided direction if there is no obstacle in that direction
-            switch (direction)
+            if (gridWorld.CanMove(direction, rowIndex, columnIndex))
             {
-                case Direction.UP:
-                    if (gridWorld.CanMove(rowIndex - 1, columnIndex))
-                    {
+                switch (direction)
+                {
+                    case Direction.UP:
                         rowIndex--;
-
-                        UpdatePosition();
-
-                        return true;
-                    }
-                    break;
-                case Direction.DOWN:
-                    if (gridWorld.CanMove(rowIndex + 1, columnIndex))
-                    {
+                        break;
+                    case Direction.DOWN:
                         rowIndex++;
-
-                        UpdatePosition();
-
-                        return true;
-                    }
-                    break;
-                case Direction.LEFT:
-                    if (gridWorld.CanMove(rowIndex, columnIndex - 1))
-                    {
+                        break;
+                    case Direction.LEFT:
                         columnIndex--;
-
-                        UpdatePosition();
-
-                        return true;
-                    }
-                    break;
-                case Direction.RIGHT:
-                    if (gridWorld.CanMove(rowIndex, columnIndex + 1))
-                    {
+                        break;
+                    case Direction.RIGHT:
                         columnIndex++;
+                        break;
+                }
 
-                        UpdatePosition();
+                UpdatePosition();
 
-                        return true;
-                    }
-                    break;
+                return true;
             }
 
             return false;

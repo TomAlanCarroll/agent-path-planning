@@ -9,8 +9,8 @@
         <RadioButton x:Name="QLearningRadioButton" Content="Q-Learning" HorizontalAlignment="Left" Margin="72,-26,0,0" VerticalAlignment="Top" GroupName="algorithm"/>
 
         <Button x:Name="LoadGridButton" Content="Load Grid File..." HorizontalAlignment="Left" Margin="166,-40,0,0" VerticalAlignment="Top" Width="125" Click="LoadGridButton_Click"/>
-        <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="502,-40,0,0" VerticalAlignment="Top" Width="46" Click="StartButton_Click"/>
-        <Button x:Name="StopButton" Content="Stop" HorizontalAlignment="Left" Margin="553,-40,0,0" VerticalAlignment="Top" Width="46" Click="StopButton_Click"/>
+        <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="502,-40,0,0" VerticalAlignment="Top" Width="46" Click="StartButton_Click" IsEnabled="False"/>
+        <Button x:Name="StopButton" Content="Stop" HorizontalAlignment="Left" Margin="553,-40,0,0" VerticalAlignment="Top" Width="46" Click="StopButton_Click" IsEnabled="False"/>
 
     </Grid>
 

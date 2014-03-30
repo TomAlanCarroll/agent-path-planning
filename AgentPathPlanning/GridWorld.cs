@@ -14,6 +14,9 @@ namespace AgentPathPlanning
     {
         private Cell[,] cells;
 
+        private Agent agent;
+        private Reward reward;
+
         // Number of rows and columns (default is 10x10)
         private int ROWS = 10;
         private int COLUMNS = 10;
@@ -87,6 +90,31 @@ namespace AgentPathPlanning
             }
         }
 
+        public Cell[,] GetCells()
+        {
+            return cells;
+        }
+
+        public Agent GetAgent()
+        {
+            return agent;
+        }
+
+        public void SetAgent(Agent agent)
+        {
+            this.agent = agent;
+        }
+
+        public Reward GetReward()
+        {
+            return reward;
+        }
+
+        public void SetReward(Reward reward)
+        {
+            this.reward = reward;
+        }
+
         private int GetRowIndexFromId(String id)
         {
             return id.Replace("cell", "")[0];
@@ -118,21 +146,37 @@ namespace AgentPathPlanning
         }
 
         /// <summary>
-        /// Determines if a cell specified by row and column indices is available to move towards.
+        /// Determines if a cell specified by row and column indices is available to move towards the specified direction.
         /// </summary>
-        /// <param name="rowIndex">The row index</param>
-        /// <param name="columnIndex">The column index</param>
+        /// <param name="direction">The direction to move</param>
         /// <returns>true if the cell can be moved to by an agent; false otherwise</returns>
-        public bool CanMove(int rowIndex, int columnIndex)
-        {
+        public bool CanMove(Direction direction, int rowIndex, int columnIndex)
+        {// Move in the provided direction if there is no obstacle in that direction
+            int newRowIndex = rowIndex, newColumnIndex = columnIndex;
+            switch (direction)
+            {
+                case Direction.UP:
+                    newRowIndex = rowIndex - 1;
+                    break;
+                case Direction.DOWN:
+                    newRowIndex = rowIndex + 1;
+                    break;
+                case Direction.LEFT:
+                    newColumnIndex = newColumnIndex - 1;
+                    break;
+                case Direction.RIGHT:
+                    newColumnIndex = newColumnIndex + 1;
+                    break;
+            }
+
             // Check for out of bounds indices
-            if (rowIndex < 0 || ROWS - 1 < rowIndex || columnIndex < 0 || COLUMNS - 1 < columnIndex)
+            if (newRowIndex < 0 || ROWS - 1 < newRowIndex || newColumnIndex < 0 || COLUMNS - 1 < newColumnIndex)
             {
                 return false;
             }
 
             // Check if this index is an obstacle
-            if (cells[rowIndex, columnIndex].IsObstacle())
+            if (cells[newRowIndex, newColumnIndex].IsObstacle())
             {
                 return false;
             }
