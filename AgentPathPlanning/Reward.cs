@@ -74,5 +74,15 @@ namespace AgentPathPlanning
         {
             rewardImage.Margin = new Thickness(columnIndex * width, rowIndex * height, 0, 0);
         }
+
+        public void ShowImage()
+        {
+            this.rewardImage.Visibility = Visibility.Visible;
+        }
+
+        public void HideImage()
+        {
+            this.rewardImage.Visibility = Visibility.Hidden;
+        }
     }
 }

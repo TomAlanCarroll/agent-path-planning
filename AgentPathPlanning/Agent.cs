@@ -13,6 +13,7 @@ namespace AgentPathPlanning
     class Agent
     {
         private Image agentImage;
+        private Image agentWithRewardImage;
         private int height;
         private int width;
         private int rowIndex;
@@ -48,6 +49,30 @@ namespace AgentPathPlanning
             agentImage.Visibility = Visibility.Visible;
 
             grid.Children.Add(agentImage);
+
+            // Setup the agent with reward image source 
+            BitmapImage agentWithRewardImageSource = new BitmapImage();
+
+            // BitmapImage.UriSource must be in a BeginInit/EndInit block.
+            agentWithRewardImageSource.BeginInit();
+            agentWithRewardImageSource.UriSource = new Uri("pack://application:,,,/Images/walle_cooler.png");
+            agentWithRewardImageSource.EndInit();
+
+            agentWithRewardImage = new Image();
+            agentWithRewardImage.Source = agentWithRewardImageSource;
+
+            agentWithRewardImage.Height = height;
+            agentWithRewardImage.Width = width;
+            agentWithRewardImage.Stretch = Stretch.None;
+
+            agentWithRewardImage.Margin = new Thickness(columnIndex * width, rowIndex * height, 0, 0);
+
+            agentWithRewardImage.VerticalAlignment = VerticalAlignment.Top;
+            agentWithRewardImage.HorizontalAlignment = HorizontalAlignment.Left;
+
+            agentWithRewardImage.Visibility = Visibility.Hidden;
+
+            grid.Children.Add(agentWithRewardImage);
         }
 
         public Image GetAgentImage()
@@ -118,6 +143,19 @@ namespace AgentPathPlanning
         public void UpdatePosition()
         {
             agentImage.Margin = new Thickness(columnIndex * width, rowIndex * height, 0, 0);
+            agentWithRewardImage.Margin = new Thickness(columnIndex * width, rowIndex * height, 0, 0);
+        }
+
+        public void ShowAgentWithReward()
+        {
+            agentImage.Visibility = Visibility.Hidden;
+            agentWithRewardImage.Visibility = Visibility.Visible;
+        }
+
+        public void ShowAgentWithoutReward()
+        {
+            agentImage.Visibility = Visibility.Visible;
+            agentWithRewardImage.Visibility = Visibility.Hidden;
         }
     }
 }

@@ -19,6 +19,9 @@ namespace AgentPathPlanning
         private bool hasBeenSearched;
         private Rectangle rectangle;
 
+        // The parent cell that led to this cell
+        private Cell parent;
+
         public Cell(int rowIndex, int columnIndex, bool isObstacle, bool isAgentStartingCell, bool isRewardCell)
         {
             this.rowIndex = rowIndex;
@@ -91,6 +94,16 @@ namespace AgentPathPlanning
         public void SetRectangle(Rectangle rectangle)
         {
             this.rectangle = rectangle;
+        }
+
+        public Cell GetParent()
+        {
+            return parent;
+        }
+
+        public void SetParent(Cell parent)
+        {
+            this.parent = parent;
         }
     }
 }

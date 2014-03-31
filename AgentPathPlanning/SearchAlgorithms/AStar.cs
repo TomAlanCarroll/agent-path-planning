@@ -38,8 +38,6 @@ namespace AgentPathPlanning.SearchAlgorithms
             this.currentCell.SetFScore(fScore);
 
             unvisitedCells.AddFirst(this.currentCell);
-
-            bestPath.AddFirst(this.currentCell);
         }
 
         public void Run(object sender, EventArgs e)
@@ -72,34 +70,42 @@ namespace AgentPathPlanning.SearchAlgorithms
             if (currentCell.IsRewardCell())
             {
                 System.Console.Out.WriteLine("Found the reward");
+                return;
             }
-                // Check if cell is a neighbor of the currentCell
-                // If so, set the cost and add to unvisitedCells in ProcessNeighbor()
 
-                if (gridWorld.CanMove(Direction.UP, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
-                {
-                    ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex() - 1, currentCell.GetColumnIndex()]);
-                }
+            // Check if cell is a neighbor of the currentCell
+            // If so, set the cost and add to unvisitedCells in ProcessNeighbor()
 
-                if (gridWorld.CanMove(Direction.DOWN, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
-                {
-                    ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex() + 1, currentCell.GetColumnIndex()]);
-                }
+            if (gridWorld.CanMove(Direction.UP, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            {
+                ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex() - 1, currentCell.GetColumnIndex()]);
+            }
 
-                if (gridWorld.CanMove(Direction.LEFT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
-                {
-                    ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() - 1]);
-                }
+            if (gridWorld.CanMove(Direction.DOWN, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            {
+                ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex() + 1, currentCell.GetColumnIndex()]);
+            }
 
-                if (gridWorld.CanMove(Direction.RIGHT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
-                {
-                    ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() + 1]);
-                }
+            if (gridWorld.CanMove(Direction.LEFT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            {
+                ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() - 1]);
+            }
+
+            if (gridWorld.CanMove(Direction.RIGHT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            {
+                ProcessNeighbor(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() + 1]);
+            }
         }
 
         public void ProcessNeighbor(Cell neighbor)
         {
+            // Set the parent of the neighboring cell to the current cell
+            if (!visitedCells.Contains(neighbor) && !unvisitedCells.Contains(neighbor))
+            {
+                neighbor.SetParent(currentCell);
+            }
 
+            // Calculate the scores
             double gScore = currentCell.GetGScore() + 1;
 
             neighbor.SetGScore(gScore);
@@ -127,17 +133,25 @@ namespace AgentPathPlanning.SearchAlgorithms
 
         public LinkedList<Cell> GetBestPath()
         {
-            // TODO: Get the best path
             if (currentCell != null)
             {
-                LinkedList<Cell> bestPath = new LinkedList<Cell>();
                 Cell nextCell = currentCell;
 
-                while (nextCell != null)
+                while (nextCell.GetRowIndex() != gridWorld.GetAgentStartingPosition()[0] ||
+                       nextCell.GetColumnIndex() != gridWorld.GetAgentStartingPosition()[1])
                 {
-                    bestPath.AddLast(nextCell);
-                    //nextCell = ...
+                    bestPath.AddFirst(nextCell);
+
+                    nextCell = nextCell.GetParent();
+
+                    if (nextCell == null)
+                    {
+                        throw new Exception("Unable to find starting cell in best path");
+                    }
                 }
+
+                // Add the starting cell
+                bestPath.AddFirst(nextCell);
 
                 return bestPath;
             }

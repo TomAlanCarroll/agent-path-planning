@@ -24,5 +24,12 @@ namespace AgentPathPlanning.SearchAlgorithms
             // TODO: Implement
             System.Console.Out.WriteLine("Running Q-Learning; Step Count: " + stepCount++);
         }
+
+
+        public LinkedList<Cell> GetBestPath()
+        {
+            // TODO: Implement
+            return null;
+        }
     }
 }

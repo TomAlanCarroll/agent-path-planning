@@ -25,11 +25,15 @@ namespace AgentPathPlanning
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const long UPDATE_FREQUENCY = 100; // Run the search steps this many milliseconds
+        private const long UPDATE_FREQUENCY = 20; // Run the search steps this many milliseconds
+        private const long BEST_PATH_UPDATE_FREQUENCY = 200; // Show the best path steps this many milliseconds
 
         // Cell size
         private const int CELL_HEIGHT = 60;
         private const int CELL_WIDTH = 60;
+
+        // Best path cell color
+        private SolidColorBrush BEST_PATH_CELL_COLOR = new SolidColorBrush(Color.FromRgb(123, 184, 112));
 
         private GridWorld gridWorld;
         private Cell startingCell;
@@ -38,7 +42,11 @@ namespace AgentPathPlanning
         private AStar aStarSearch;
         private QLearning qLearningSearch;
 
-        private DispatcherTimer timer;
+        private DispatcherTimer searchTimer;
+
+        private DispatcherTimer showBestPathTimer;
+
+        private LinkedList<Cell> bestPath;
 
         public MainWindow()
         {
@@ -108,11 +116,8 @@ namespace AgentPathPlanning
             // Make the start button inactive
             StartButton.IsEnabled = false;
 
-            // Make the stop button active
-            StopButton.IsEnabled = true;
-
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(UPDATE_FREQUENCY);
+            searchTimer = new DispatcherTimer();
+            searchTimer.Interval = TimeSpan.FromMilliseconds(UPDATE_FREQUENCY);
 
 
 
@@ -123,8 +128,8 @@ namespace AgentPathPlanning
                     aStarSearch = new AStar(gridWorld, startingCell, rewardCell);
                 }
 
-                timer.Tick += new EventHandler(aStarSearch.Run);
-                timer.Tick += new EventHandler(UpdateAgentPosition);
+                searchTimer.Tick += new EventHandler(aStarSearch.Run);
+                searchTimer.Tick += new EventHandler(UpdateAgentPosition);
             }
             else // Q-Learning is checked
             {
@@ -133,27 +138,19 @@ namespace AgentPathPlanning
                     qLearningSearch = new QLearning(startingCell, rewardCell);
                 }
 
-                timer.Tick += new EventHandler(qLearningSearch.Run);
+                searchTimer.Tick += new EventHandler(qLearningSearch.Run);
             }
 
 
-            timer.Start();
-        }
-
-        private void StopButton_Click(object sender, RoutedEventArgs e)
-        {
-            Stop();
+            searchTimer.Start();
         }
 
         private void Stop()
         {
-            timer.Stop();
+            searchTimer.Stop();
 
             // Make the start button active
             StartButton.IsEnabled = true;
-
-            // Make the stop button inactive
-            StopButton.IsEnabled = false;
         }
 
         public void UpdateAgentPosition(object sender, EventArgs e)
@@ -162,6 +159,67 @@ namespace AgentPathPlanning
             gridWorld.GetAgent().SetColumnIndex(aStarSearch.GetCurrentCell().GetColumnIndex());
 
             gridWorld.GetAgent().UpdatePosition();
+
+            // Check if agent is on the reward cell
+            // If so, process the reward
+            if (aStarSearch.GetCurrentCell().GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
+                aStarSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
+            {
+                ProcessFoundReward();
+            }
+        }
+
+        public void ProcessFoundReward()
+        {
+            // Stop the search
+            Stop();
+            
+            if ((bool)AStarRadioButton.IsChecked)
+            {
+                bestPath = aStarSearch.GetBestPath();
+            }
+            else // Q-Learning is checked
+            {
+                bestPath = qLearningSearch.GetBestPath();
+            }
+
+            showBestPathTimer = new DispatcherTimer();
+            showBestPathTimer.Interval = TimeSpan.FromMilliseconds(BEST_PATH_UPDATE_FREQUENCY);
+            showBestPathTimer.Tick += new EventHandler(StepThroughBestPath);
+
+            showBestPathTimer.Start();
+        }
+
+        public void StepThroughBestPath(object sender, EventArgs e)
+        {
+            // Illuminate the best path
+            bestPath.First.Value.GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+
+            gridWorld.GetAgent().SetRowIndex(bestPath.First.Value.GetRowIndex());
+            gridWorld.GetAgent().SetColumnIndex(bestPath.First.Value.GetColumnIndex());
+
+            gridWorld.GetAgent().UpdatePosition();
+
+            // Check if agent is on the reward cell
+            // If so, process the reward
+            if (bestPath.First.Value.GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
+                bestPath.First.Value.GetColumnIndex() == gridWorld.GetRewardPosition()[1])
+            {
+                toggleAgentImage();
+
+                showBestPathTimer.Stop();
+            }
+
+            bestPath.RemoveFirst();
+        }
+
+        public void toggleAgentImage()
+        {
+            // Change the image of the reward cell
+            gridWorld.GetAgent().ShowAgentWithReward();
+
+            // Hide the reward image
+            gridWorld.GetReward().HideImage();
         }
     }
 }
