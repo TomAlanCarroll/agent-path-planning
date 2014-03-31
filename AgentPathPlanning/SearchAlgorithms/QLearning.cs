@@ -7,17 +7,6 @@ using System.Threading.Tasks;
 
 namespace AgentPathPlanning.SearchAlgorithms
 {
-    public static class ThreadSafeRandom
-    {
-        [ThreadStatic]
-        private static Random Local;
-
-        public static Random ThisThreadsRandom
-        {
-            get { return Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId))); }
-        }
-    }
-
     class QLearning
     {
         private Cell currentCell;
@@ -34,6 +23,7 @@ namespace AgentPathPlanning.SearchAlgorithms
         private const int NUMBER_OF_MOVES = 4;
         private const int NUMBER_OF_EPISODES = 100;
         private const int MAX_SEARCH_STEPS = 150;
+        private const int REWARD = 100;
         private const double ALPHA = 0.2;
         private const double GAMMA = 0.99;
 
@@ -53,7 +43,7 @@ namespace AgentPathPlanning.SearchAlgorithms
 
             if (stepCount > MAX_SEARCH_STEPS)
             {
-                RestartEpisode();
+                RestartEpisode(null);
             }
 
             if (episodeCount > NUMBER_OF_EPISODES)
@@ -68,25 +58,21 @@ namespace AgentPathPlanning.SearchAlgorithms
                 return;
             }
 
+            Direction bestDirection = GetBestDirection(currentCell);
+
+            // In this stochastic implementation, use the transition function to get the actual direction to move
+            Direction actualDirection = Transition(currentCell, bestDirection);
+
+            currentCell = gridWorld.GetCell(currentCell, actualDirection);
+            currentCell.SetHasBeenSearched(true);
+
             if (training)
             {
-                Direction bestDirection = GetBestDirection(currentCell);
-
-                // In this stochastic implementation, use the transition function to get the actual direction to move
-                Direction actualDirection = Transition(bestDirection);
-
-                // Favor unexplored cells to improve the Q-Learning search
-                if (favorUnexploredCells)
-                {
-                    // TODO: provide incentive
-                }
-
-                currentCell = gridWorld.GetCell(currentCell, actualDirection);
-
                 // Update the Q-Table with the current cell
                 foreach (Direction direction in Enum.GetValues(typeof(Direction)))
                 {
-                    if (gridWorld.CanMove(direction, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+                    if (direction != Direction.NONE &&
+                        gridWorld.CanMove(direction, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
                     {
                         UpdateQValue(currentCell, direction);
                     }
@@ -94,67 +80,115 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
         }
 
-        public LinkedList<Cell> GetBestPath()
-        {
-            // TODO: Implement
-            return null;
-        }
-
         public Direction GetBestDirection(Cell cell)
         {
-            SortedList<Direction, double> directions = new SortedList<Direction, double>();
             allowedDirections = new List<Direction>();
+            Direction bestDirection = Direction.NONE;
+            double maxQValue = 0;
 
             if (gridWorld.CanMove(Direction.UP, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.UP);
-                directions.Add(Direction.UP, GetQValue(gridWorld.GetCells()[cell.GetRowIndex() - 1, cell.GetColumnIndex()], Direction.UP));
+                
+                if (GetQValue(cell, Direction.UP) > maxQValue)
+                {
+                    maxQValue = GetQValue(cell, Direction.UP);
+                    bestDirection = Direction.UP;
+                }
             }
 
             if (gridWorld.CanMove(Direction.DOWN, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.DOWN);
-                directions.Add(Direction.DOWN, GetQValue(gridWorld.GetCells()[cell.GetRowIndex() + 1, cell.GetColumnIndex()], Direction.DOWN));
+                
+                if (GetQValue(cell, Direction.DOWN) > maxQValue)
+                {
+                    maxQValue = GetQValue(cell, Direction.DOWN);
+                    bestDirection = Direction.DOWN;
+                }
             }
 
             if (gridWorld.CanMove(Direction.LEFT, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.LEFT);
-                directions.Add(Direction.LEFT, GetQValue(gridWorld.GetCells()[cell.GetRowIndex(), cell.GetColumnIndex() - 1], Direction.LEFT));
+                
+                if (GetQValue(cell, Direction.LEFT) > maxQValue)
+                {
+                    maxQValue = GetQValue(cell, Direction.LEFT);
+                    bestDirection = Direction.LEFT;
+                }
             }
 
             if (gridWorld.CanMove(Direction.RIGHT, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.RIGHT);
-                directions.Add(Direction.RIGHT, GetQValue(gridWorld.GetCells()[cell.GetRowIndex(), cell.GetColumnIndex() + 1], Direction.RIGHT));
+                
+                if (GetQValue(cell, Direction.RIGHT) > maxQValue)
+                {
+                    maxQValue = GetQValue(cell, Direction.RIGHT);
+                    bestDirection = Direction.RIGHT;
+                }
             }
 
             // Get the direction with the highest QValue
-            return directions.ElementAt(directions.Count - 1).Key;
+            return bestDirection;
         }
 
-        public Direction Transition(Direction bestDirection)
+        public Direction Transition(Cell currentCell, Direction bestDirection)
         {
             Random random = new Random();
             double transitionValue = random.NextDouble();
+            if (bestDirection == Direction.NONE) // Explore unexplored cells
+            {
+                return UnexploredDirection();
+            }
+            else // Use the best direction / unexplored / random
+            {
+                if (training)
+                {
+                    if (transitionValue <= 0.6)
+                    {
+                        return bestDirection;
+                    }
+                    else if (transitionValue <= 0.8 && favorUnexploredCells)  // Favor unexplored cells to improve the Q-Learning search
+                    {
+                        return UnexploredDirection();
+                    }
+                    else // Select a random direction
+                    {
+                        Shuffle(allowedDirections);
 
-            if (transitionValue <= 0.6)
-            {
-                return bestDirection;
+                        return allowedDirections[0];
+                    }
+                }
+                else // Testing: no stochastic transitions
+                {
+                    return bestDirection;
+                }
             }
-            else // Select a random direction
+        }
+
+        public Direction UnexploredDirection()
+        {
+            Shuffle(allowedDirections);
+
+            foreach (Direction direction in allowedDirections)
             {
-                Shuffle(allowedDirections);
-                
-                return allowedDirections[0];
+                if (!gridWorld.GetCell(currentCell, direction).HasBeenSearched())
+                {
+                    return direction;
+                }
             }
+
+            // All directions have been searched; Return the first (random) direction
+            return allowedDirections[0];
         }
 
         public int Reward(Cell cell)
         {
             if (cell.IsRewardCell())
             {
-                return 100;
+                return REWARD;
             }
             else
             {
@@ -167,6 +201,15 @@ namespace AgentPathPlanning.SearchAlgorithms
             return qTable[cell.GetRowIndex(),cell.GetColumnIndex(),(int)direction];
         }
 
+        public double GetSumQValue(Cell cell)
+        {
+            return qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)Direction.UP] +
+                qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)Direction.DOWN] +
+                qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)Direction.LEFT] +
+                qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)Direction.RIGHT];
+        }
+
+
         public void UpdateQValue(Cell cell, Direction direction)
         {
             double currentQValue = GetQValue(cell, direction);
@@ -175,7 +218,11 @@ namespace AgentPathPlanning.SearchAlgorithms
 
             double nextCellReward = Reward(nextCell);
 
-            double maxEstimate = GetQValue(nextCell, GetBestDirection(nextCell));
+            double maxEstimate = 0;
+            if (GetBestDirection(nextCell) != Direction.NONE)
+            {
+                maxEstimate = GetQValue(nextCell, GetBestDirection(nextCell));
+            }
 
             qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)direction] = QLearningRule(currentQValue, ALPHA, nextCellReward, GAMMA, maxEstimate);
         }
@@ -198,7 +245,7 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
         }
 
-        public void RestartEpisode()
+        public void RestartEpisode(Cell startingPosition)
         {
             // Reset the step count for the next episode
             stepCount = 0;
@@ -217,9 +264,15 @@ namespace AgentPathPlanning.SearchAlgorithms
                 }
             }
 
-            int nextCellIndex = (new Random()).Next(0, availableCells.Count - 1);
-
-            currentCell = availableCells[nextCellIndex];
+            if (startingPosition == null)
+            {
+                int nextCellIndex = (new Random()).Next(0, availableCells.Count - 1);
+                currentCell = availableCells[nextCellIndex];
+            }
+            else
+            {
+                currentCell = startingPosition;
+            }
         }
 
         public bool IsTraining()
@@ -232,6 +285,11 @@ namespace AgentPathPlanning.SearchAlgorithms
             return currentCell;
         }
 
+        public void SetCurrentCell(Cell currentCell)
+        {
+            this.currentCell = currentCell;
+        }
+
         public int GetEpisodeCount()
         {
             return episodeCount;
@@ -240,6 +298,22 @@ namespace AgentPathPlanning.SearchAlgorithms
         public void SetEpisodeCount(int episodeCount)
         {
             this.episodeCount = episodeCount;
+        }
+
+        public int GetReward()
+        {
+            return REWARD;
+        }
+    }
+
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic]
+        private static Random Local;
+
+        public static Random ThisThreadsRandom
+        {
+            get { return Local ?? (Local = new Random(unchecked(Environment.TickCount * 31 + Thread.CurrentThread.ManagedThreadId))); }
         }
     }
 }

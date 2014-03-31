@@ -144,6 +144,8 @@ namespace AgentPathPlanning
                 case Direction.RIGHT:
                     newColumnIndex = newColumnIndex + 1;
                     break;
+                case Direction.NONE:
+                    return false;
             }
 
             // Check for out of bounds indices

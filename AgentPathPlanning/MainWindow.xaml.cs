@@ -25,7 +25,7 @@ namespace AgentPathPlanning
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const long UPDATE_FREQUENCY = 20; // Run the search steps this many milliseconds
+        private const long UPDATE_FREQUENCY = 3; // Run the search steps this many milliseconds
         private const long BEST_PATH_UPDATE_FREQUENCY = 200; // Show the best path steps this many milliseconds
 
         // Q-Learning
@@ -36,8 +36,9 @@ namespace AgentPathPlanning
         private const int CELL_HEIGHT = 60;
         private const int CELL_WIDTH = 60;
 
-        // Best path cell color
+        // Cell colors
         private SolidColorBrush BEST_PATH_CELL_COLOR = new SolidColorBrush(Color.FromRgb(123, 184, 112));
+        private SolidColorBrush UNOCCUPIED_CELL_BACKGROUND_COLOR = new SolidColorBrush(Color.FromRgb(244, 244, 244));
 
         private GridWorld gridWorld;
         private Cell startingCell;
@@ -77,6 +78,12 @@ namespace AgentPathPlanning
             {
                 // Setup the grid world
                 gridWorld = new GridWorld(grid, GridMapParser.Parse(fileDialog.FileName), CELL_HEIGHT, CELL_WIDTH);
+
+                // Add click events for the rectangles
+                foreach (Cell cell in gridWorld.GetCells())
+                {
+                    cell.GetRectangle().MouseLeftButtonDown += new MouseButtonEventHandler(MoveAgent);
+                }
 
                 // Setup the agent
                 if (gridWorld.GetAgentStartingPosition() != null && gridWorld.GetAgentStartingPosition().Length == 2)
@@ -150,9 +157,17 @@ namespace AgentPathPlanning
             searchTimer.Start();
         }
 
-        private void StopAStar()
+        private void Stop()
         {
-            searchTimer.Stop();
+            if (searchTimer != null)
+            {
+                searchTimer.Stop();
+            }
+
+            if (showBestPathTimer != null)
+            {
+                showBestPathTimer.Stop();
+            }
 
             // Make the start button active
             StartButton.IsEnabled = true;
@@ -178,12 +193,19 @@ namespace AgentPathPlanning
                 gridWorld.GetAgent().SetRowIndex(qLearningSearch.GetCurrentCell().GetRowIndex());
                 gridWorld.GetAgent().SetColumnIndex(qLearningSearch.GetCurrentCell().GetColumnIndex());
 
+                IlluminateCell();
+
                 // Check if agent is on the reward cell
-                // If so, process the reward
+                // If so, swap the images and stop the timer
                 if (qLearningSearch.GetCurrentCell().GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
                     qLearningSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
                 {
                     ProcessFoundReward();
+
+                    if (!qLearningSearch.IsTraining())
+                    {
+                        Stop();
+                    }
                 }
             }
 
@@ -195,7 +217,7 @@ namespace AgentPathPlanning
             if ((bool)AStarRadioButton.IsChecked)
             {
                 // Stop the search
-                StopAStar();
+                Stop();
                 bestPath = aStarSearch.GetBestPath();
 
                 showBestPathTimer = new DispatcherTimer();
@@ -208,11 +230,14 @@ namespace AgentPathPlanning
             {
                 if (qLearningSearch.IsTraining())
                 {
-                    qLearningSearch.RestartEpisode();
+                    qLearningSearch.RestartEpisode(null);
                 }
                 else
                 {
-                    // Show the learned Q-Table
+                    // Stop the search
+                    Stop();
+
+                    toggleAgentImage();
                 }
             }
         }
@@ -224,9 +249,40 @@ namespace AgentPathPlanning
             {
                 bestPath.First.Value.GetRectangle().Fill = BEST_PATH_CELL_COLOR;
             }
-            else if (!qLearningSearch.IsTraining()) // Q-Learning is checked; Only illuminate after training
+            else // Q-Learning is checked
             {
-                qLearningSearch.GetCurrentCell().GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+                // Only illuminate the current cell after training
+                if (!qLearningSearch.IsTraining())
+                {
+                    qLearningSearch.GetCurrentCell().GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+                }
+                else // Illuminate the Q-Table
+                {
+                    foreach (Cell cell in gridWorld.GetCells())
+                    {
+                        if (qLearningSearch.GetSumQValue(cell) > 0)
+                        {
+                            SolidColorBrush cellBackground = BEST_PATH_CELL_COLOR;
+                            cellBackground.Opacity = (qLearningSearch.GetSumQValue(cell) / qLearningSearch.GetReward()) / 6;
+                            if (cellBackground.Opacity < 0.4)
+                            {
+                                cellBackground.Opacity = 0.4;
+                            }
+                            cell.GetRectangle().Fill = cellBackground;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ResetCellFills()
+        {
+            foreach (Cell cell in gridWorld.GetCells())
+            {
+                if (!cell.IsObstacle())
+                {
+                    cell.GetRectangle().Fill = UNOCCUPIED_CELL_BACKGROUND_COLOR;
+                }
             }
         }
 
@@ -256,10 +312,63 @@ namespace AgentPathPlanning
         public void toggleAgentImage()
         {
             // Change the image of the reward cell
-            gridWorld.GetAgent().ShowAgentWithReward();
+            if (gridWorld.GetAgent().GetAgentImage().Visibility == Visibility.Visible)
+            {
+                gridWorld.GetAgent().ShowAgentWithReward();
+            }
+            else
+            {
+                gridWorld.GetAgent().ShowAgentWithoutReward();
+            }
 
             // Hide the reward image
-            gridWorld.GetReward().HideImage();
+            if (gridWorld.GetReward().GetRewardImage().Visibility == Visibility.Visible)
+            {
+                gridWorld.GetReward().HideImage();
+            }
+            else
+            {
+                gridWorld.GetReward().ShowImage();
+            }
+        }
+
+        public void MoveAgent(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Rectangle)
+            {
+                if ((bool)AStarRadioButton.IsChecked)
+                {
+
+                }
+                else if (qLearningSearch != null && !qLearningSearch.IsTraining()) // Q-Learning is checked; Only illuminate after training
+                {
+                    ResetCellFills();
+
+                    foreach (Cell cell in gridWorld.GetCells())
+                    {
+                        if ((Rectangle)sender == cell.GetRectangle())
+                        {
+                            if (showBestPathTimer != null)
+                            {
+                                showBestPathTimer.Stop();
+                            }
+
+                            toggleAgentImage();
+
+                            qLearningSearch.RestartEpisode(cell);
+                            UpdateAgentPosition(null, null);
+
+                            showBestPathTimer = new DispatcherTimer();
+                            showBestPathTimer.Interval = TimeSpan.FromMilliseconds(BEST_PATH_UPDATE_FREQUENCY);
+                            showBestPathTimer.Tick += new EventHandler(qLearningSearch.Run);
+                            showBestPathTimer.Tick += new EventHandler(UpdateAgentPosition);
+
+                            showBestPathTimer.Start();
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
 }
