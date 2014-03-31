@@ -161,5 +161,35 @@ namespace AgentPathPlanning
             // Inbound and not an obstacle: return true
             return true;
         }
+
+        /// <summary>
+        /// Gets the cell in the specified direction from the provided starting cell
+        /// </summary>
+        /// <param name="startingCell">The starting cell</param>
+        /// <param name="direction">The direction to get the cell</param>
+        /// <returns></returns>
+        public Cell GetCell(Cell startingCell, Direction direction)
+        {
+            if (direction == Direction.UP)
+            {
+                return GetCells()[startingCell.GetRowIndex() - 1, startingCell.GetColumnIndex()];
+            }
+            else if (direction == Direction.DOWN)
+            {
+                return GetCells()[startingCell.GetRowIndex() + 1, startingCell.GetColumnIndex()];
+            }
+            else if (direction == Direction.LEFT)
+            {
+                return GetCells()[startingCell.GetRowIndex(), startingCell.GetColumnIndex() - 1];
+            }
+            else if (direction == Direction.RIGHT)
+            {
+                return GetCells()[startingCell.GetRowIndex(), startingCell.GetColumnIndex() + 1];
+            }
+            else
+            {
+                throw new Exception("Unknown direction encountered.");
+            }
+        }
     }
 }

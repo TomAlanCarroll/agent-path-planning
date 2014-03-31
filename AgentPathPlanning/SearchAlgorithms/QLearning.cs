@@ -29,6 +29,7 @@ namespace AgentPathPlanning.SearchAlgorithms
         private int episodeCount = 0;
 
         private bool training = true;
+        private bool favorUnexploredCells = true;
 
         private const int NUMBER_OF_MOVES = 4;
         private const int NUMBER_OF_EPISODES = 100;
@@ -69,26 +70,26 @@ namespace AgentPathPlanning.SearchAlgorithms
 
             if (training)
             {
-                Direction bestDirection = GetBestDirection();
+                Direction bestDirection = GetBestDirection(currentCell);
 
                 // In this stochastic implementation, use the transition function to get the actual direction to move
                 Direction actualDirection = Transition(bestDirection);
 
-                if (actualDirection == Direction.UP)
+                // Favor unexplored cells to improve the Q-Learning search
+                if (favorUnexploredCells)
                 {
-                    currentCell = gridWorld.GetCells()[currentCell.GetRowIndex() - 1, currentCell.GetColumnIndex()];
+                    // TODO: provide incentive
                 }
-                else if (actualDirection == Direction.DOWN)
+
+                currentCell = gridWorld.GetCell(currentCell, actualDirection);
+
+                // Update the Q-Table with the current cell
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
                 {
-                    currentCell = gridWorld.GetCells()[currentCell.GetRowIndex() + 1, currentCell.GetColumnIndex()];
-                }
-                else if (actualDirection == Direction.LEFT)
-                {
-                    currentCell = gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() - 1];
-                }
-                else if (actualDirection == Direction.RIGHT)
-                {
-                    currentCell = gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() + 1];
+                    if (gridWorld.CanMove(direction, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+                    {
+                        UpdateQValue(currentCell, direction);
+                    }
                 }
             }
         }
@@ -99,33 +100,33 @@ namespace AgentPathPlanning.SearchAlgorithms
             return null;
         }
 
-        public Direction GetBestDirection()
+        public Direction GetBestDirection(Cell cell)
         {
             SortedList<Direction, double> directions = new SortedList<Direction, double>();
             allowedDirections = new List<Direction>();
 
-            if (gridWorld.CanMove(Direction.UP, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            if (gridWorld.CanMove(Direction.UP, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.UP);
-                directions.Add(Direction.UP, GetQValue(gridWorld.GetCells()[currentCell.GetRowIndex() - 1, currentCell.GetColumnIndex()]));
+                directions.Add(Direction.UP, GetQValue(gridWorld.GetCells()[cell.GetRowIndex() - 1, cell.GetColumnIndex()], Direction.UP));
             }
 
-            if (gridWorld.CanMove(Direction.DOWN, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            if (gridWorld.CanMove(Direction.DOWN, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.DOWN);
-                directions.Add(Direction.DOWN, GetQValue(gridWorld.GetCells()[currentCell.GetRowIndex() + 1, currentCell.GetColumnIndex()]));
+                directions.Add(Direction.DOWN, GetQValue(gridWorld.GetCells()[cell.GetRowIndex() + 1, cell.GetColumnIndex()], Direction.DOWN));
             }
 
-            if (gridWorld.CanMove(Direction.LEFT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            if (gridWorld.CanMove(Direction.LEFT, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.LEFT);
-                directions.Add(Direction.LEFT, GetQValue(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() - 1]));
+                directions.Add(Direction.LEFT, GetQValue(gridWorld.GetCells()[cell.GetRowIndex(), cell.GetColumnIndex() - 1], Direction.LEFT));
             }
 
-            if (gridWorld.CanMove(Direction.RIGHT, currentCell.GetRowIndex(), currentCell.GetColumnIndex()))
+            if (gridWorld.CanMove(Direction.RIGHT, cell.GetRowIndex(), cell.GetColumnIndex()))
             {
                 allowedDirections.Add(Direction.RIGHT);
-                directions.Add(Direction.RIGHT, GetQValue(gridWorld.GetCells()[currentCell.GetRowIndex(), currentCell.GetColumnIndex() + 1]));
+                directions.Add(Direction.RIGHT, GetQValue(gridWorld.GetCells()[cell.GetRowIndex(), cell.GetColumnIndex() + 1], Direction.RIGHT));
             }
 
             // Get the direction with the highest QValue
@@ -161,10 +162,27 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
         }
 
-        public double GetQValue(Cell cell)
+        public double GetQValue(Cell cell, Direction direction)
         {
-            // TODO: Implement
-            return 0;
+            return qTable[cell.GetRowIndex(),cell.GetColumnIndex(),(int)direction];
+        }
+
+        public void UpdateQValue(Cell cell, Direction direction)
+        {
+            double currentQValue = GetQValue(cell, direction);
+
+            Cell nextCell = gridWorld.GetCell(cell, direction);
+
+            double nextCellReward = Reward(nextCell);
+
+            double maxEstimate = GetQValue(nextCell, GetBestDirection(nextCell));
+
+            qTable[cell.GetRowIndex(), cell.GetColumnIndex(), (int)direction] = QLearningRule(currentQValue, ALPHA, nextCellReward, GAMMA, maxEstimate);
+        }
+
+        public double QLearningRule(double currentQValue, double alpha, double reward, double gamma, double maxEstimate)
+        {
+            return currentQValue + (alpha * (reward + (gamma * maxEstimate) - currentQValue));
         }
 
         public void Shuffle(List<Direction> list)
