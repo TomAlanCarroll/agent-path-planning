@@ -27,9 +27,6 @@ namespace AgentPathPlanning
         private SolidColorBrush OBSTACLE_CELL_BACKGROUND_COLOR = new SolidColorBrush(Color.FromRgb(0, 0, 0));
         private SolidColorBrush CELL_STROKE_COLOR = new SolidColorBrush(Color.FromRgb(0, 0, 0));
 
-        private int currentRowIndex = 0;
-        private int currentColumnIndex = 0;
-
         private int[] agentStartingPosition;
         private int[] rewardPosition;
 
@@ -113,26 +110,6 @@ namespace AgentPathPlanning
         public void SetReward(Reward reward)
         {
             this.reward = reward;
-        }
-
-        private int GetRowIndexFromId(String id)
-        {
-            return id.Replace("cell", "")[0];
-        }
-
-        private int GetColumnIndexFromId(String id)
-        {
-            return id.Replace("cell", "")[1];
-        }
-
-        public int GetCurrentRowIndex()
-        {
-            return currentRowIndex;
-        }
-
-        public int GetCurrentColumnIndex()
-        {
-            return currentColumnIndex;
         }
 
         public int[] GetAgentStartingPosition()

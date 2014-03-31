@@ -143,13 +143,14 @@ namespace AgentPathPlanning
                 }
 
                 searchTimer.Tick += new EventHandler(qLearningSearch.Run);
+                searchTimer.Tick += new EventHandler(UpdateAgentPosition);
             }
 
 
             searchTimer.Start();
         }
 
-        private void Stop()
+        private void StopAStar()
         {
             searchTimer.Stop();
 
@@ -159,45 +160,80 @@ namespace AgentPathPlanning
 
         public void UpdateAgentPosition(object sender, EventArgs e)
         {
-            gridWorld.GetAgent().SetRowIndex(aStarSearch.GetCurrentCell().GetRowIndex());
-            gridWorld.GetAgent().SetColumnIndex(aStarSearch.GetCurrentCell().GetColumnIndex());
+            if ((bool)AStarRadioButton.IsChecked)
+            {
+                gridWorld.GetAgent().SetRowIndex(aStarSearch.GetCurrentCell().GetRowIndex());
+                gridWorld.GetAgent().SetColumnIndex(aStarSearch.GetCurrentCell().GetColumnIndex());
+
+                // Check if agent is on the reward cell
+                // If so, process the reward
+                if (aStarSearch.GetCurrentCell().GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
+                    aStarSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
+                {
+                    ProcessFoundReward();
+                }
+            }
+            else // Q-Learning is checked
+            {
+                gridWorld.GetAgent().SetRowIndex(qLearningSearch.GetCurrentCell().GetRowIndex());
+                gridWorld.GetAgent().SetColumnIndex(qLearningSearch.GetCurrentCell().GetColumnIndex());
+
+                // Check if agent is on the reward cell
+                // If so, process the reward
+                if (qLearningSearch.GetCurrentCell().GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
+                    qLearningSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
+                {
+                    ProcessFoundReward();
+                }
+            }
 
             gridWorld.GetAgent().UpdatePosition();
-
-            // Check if agent is on the reward cell
-            // If so, process the reward
-            if (aStarSearch.GetCurrentCell().GetRowIndex() == gridWorld.GetRewardPosition()[0] &&
-                aStarSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
-            {
-                ProcessFoundReward();
-            }
         }
 
         public void ProcessFoundReward()
         {
-            // Stop the search
-            Stop();
-            
             if ((bool)AStarRadioButton.IsChecked)
             {
+                // Stop the search
+                StopAStar();
                 bestPath = aStarSearch.GetBestPath();
+
+                showBestPathTimer = new DispatcherTimer();
+                showBestPathTimer.Interval = TimeSpan.FromMilliseconds(BEST_PATH_UPDATE_FREQUENCY);
+                showBestPathTimer.Tick += new EventHandler(StepThroughBestPath);
+
+                showBestPathTimer.Start();
             }
             else // Q-Learning is checked
             {
-                bestPath = qLearningSearch.GetBestPath();
+                if (qLearningSearch.IsTraining())
+                {
+                    qLearningSearch.RestartEpisode();
+                }
+                else
+                {
+                    // Show the learned Q-Table
+                }
             }
+        }
+        
 
-            showBestPathTimer = new DispatcherTimer();
-            showBestPathTimer.Interval = TimeSpan.FromMilliseconds(BEST_PATH_UPDATE_FREQUENCY);
-            showBestPathTimer.Tick += new EventHandler(StepThroughBestPath);
-
-            showBestPathTimer.Start();
+        public void IlluminateCell()
+        {
+            if ((bool)AStarRadioButton.IsChecked)
+            {
+                bestPath.First.Value.GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+            }
+            else if (!qLearningSearch.IsTraining()) // Q-Learning is checked; Only illuminate after training
+            {
+                qLearningSearch.GetCurrentCell().GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+            }
         }
 
         public void StepThroughBestPath(object sender, EventArgs e)
         {
             // Illuminate the best path
-            bestPath.First.Value.GetRectangle().Fill = BEST_PATH_CELL_COLOR;
+            IlluminateCell();
 
             gridWorld.GetAgent().SetRowIndex(bestPath.First.Value.GetRowIndex());
             gridWorld.GetAgent().SetColumnIndex(bestPath.First.Value.GetColumnIndex());
