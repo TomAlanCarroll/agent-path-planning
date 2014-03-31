@@ -10,6 +10,7 @@
 
         <Button x:Name="LoadGridButton" Content="Load Grid File..." HorizontalAlignment="Left" Margin="173,-40,0,0" VerticalAlignment="Top" Width="125" Click="LoadGridButton_Click"/>
         <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="319,-40,0,0" VerticalAlignment="Top" Width="46" Click="StartButton_Click" IsEnabled="False"/>
+        <Button x:Name="ResetButton" Content="Reset" HorizontalAlignment="Left" Margin="383,-40,0,0" VerticalAlignment="Top" Width="46" Click="ResetButton_Click" IsEnabled="False"/>
 
     </Grid>
 

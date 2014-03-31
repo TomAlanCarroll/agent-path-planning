@@ -10,6 +10,11 @@ namespace AgentPathPlanning
 {
     class GridMapParser
     {
+        /// <summary>
+        /// Parses a grid map CSV file
+        /// </summary>
+        /// <param name="fileName">The full or relative path of the well-formed CSV file</param>
+        /// <returns>The cell 2D array</returns>
         public static Cell[,] Parse(string fileName)
         {
             Cell[,] cells = null;

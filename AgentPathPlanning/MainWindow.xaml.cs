@@ -116,15 +116,19 @@ namespace AgentPathPlanning
                     MessageBox.Show("Error: The reward starting position must be specified in the grid map file with the number 2. Please correct and try again.");
                     return;
                 }
-
-                // Make the start button active
-                StartButton.IsEnabled = true;
             }
+
+            // Make the start button active
+            StartButton.IsEnabled = true;
+            ResetButton.IsEnabled = true;
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            // Make the start button inactive
+            // Make the buttons inactive
+            AStarRadioButton.IsEnabled = false;
+            QLearningRadioButton.IsEnabled = false;
+            LoadGridButton.IsEnabled = false;
             StartButton.IsEnabled = false;
 
             searchTimer = new DispatcherTimer();
@@ -168,9 +172,6 @@ namespace AgentPathPlanning
             {
                 showBestPathTimer.Stop();
             }
-
-            // Make the start button active
-            StartButton.IsEnabled = true;
         }
 
         public void UpdateAgentPosition(object sender, EventArgs e)
@@ -201,11 +202,6 @@ namespace AgentPathPlanning
                     qLearningSearch.GetCurrentCell().GetColumnIndex() == gridWorld.GetRewardPosition()[1])
                 {
                     ProcessFoundReward();
-
-                    if (!qLearningSearch.IsTraining())
-                    {
-                        Stop();
-                    }
                 }
             }
 
@@ -238,6 +234,8 @@ namespace AgentPathPlanning
                     Stop();
 
                     toggleAgentImage();
+
+                    QTableExport.Save(qLearningSearch.GetQTable());
                 }
             }
         }
@@ -264,9 +262,9 @@ namespace AgentPathPlanning
                         {
                             SolidColorBrush cellBackground = BEST_PATH_CELL_COLOR;
                             cellBackground.Opacity = (qLearningSearch.GetSumQValue(cell) / qLearningSearch.GetReward()) / 6;
-                            if (cellBackground.Opacity < 0.4)
+                            if (cellBackground.Opacity < 0.2)
                             {
-                                cellBackground.Opacity = 0.4;
+                                cellBackground.Opacity = 0.2;
                             }
                             cell.GetRectangle().Fill = cellBackground;
                         }
@@ -369,6 +367,11 @@ namespace AgentPathPlanning
                     }
                 }
             }
+        }
+
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

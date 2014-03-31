@@ -60,6 +60,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="SearchAlgorithms\QTableExport.cs" />
     <Compile Include="SearchAlgorithms\AStar.cs" />
     <Compile Include="SearchAlgorithms\QLearning.cs" />
     <Page Include="MainWindow.xaml">

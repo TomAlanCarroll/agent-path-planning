@@ -9,18 +9,16 @@ namespace AgentPathPlanning.SearchAlgorithms
 {
     class AStar
     {
-        private LinkedList<Cell> visitedCells;
-        private LinkedList<Cell> unvisitedCells;
+        private LinkedList<Cell> visitedCells; // The set of visited cells in the grid simulation
+        private LinkedList<Cell> unvisitedCells; // The set of unvisted cells in the grid simulation
+        private LinkedList<Cell> bestPath; // The best path between the starting position and the reward
 
-        private LinkedList<Cell> bestPath;
+        private GridWorld gridWorld; // The grid world in the simulation
 
-        private GridWorld gridWorld;
+        private Cell currentCell; // The cell where the agent is located in the simulation
+        private Cell rewardCell; // The cell where the reward is located in the simulation
 
-        private Cell currentCell;
-
-        private Cell rewardCell;
-
-        private int stepCount = 0;
+        private int stepCount = 0; // The number of steps take in each episode
 
         public AStar(GridWorld gridWorld, Cell startingCell, Cell rewardCell)
         {
@@ -40,6 +38,11 @@ namespace AgentPathPlanning.SearchAlgorithms
             unvisitedCells.AddFirst(this.currentCell);
         }
 
+        /// <summary>
+        /// Runs a tick of the A* search
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void Run(object sender, EventArgs e)
         {
 
@@ -97,6 +100,10 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
         }
 
+        /// <summary>
+        /// Processes an available neighbor by calculating the g, f, and h scores and adding to the appropriate array
+        /// </summary>
+        /// <param name="neighbor">The neighboring cell</param>
         public void ProcessNeighbor(Cell neighbor)
         {
             // Set the parent of the neighboring cell to the current cell
@@ -131,6 +138,7 @@ namespace AgentPathPlanning.SearchAlgorithms
             unvisitedCells.AddLast(neighbor);
         }
 
+        // Gets the best path by back-tracing from the reward to the starting position for each cell
         public LinkedList<Cell> GetBestPath()
         {
             if (currentCell != null)
@@ -161,9 +169,15 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
         }
 
+        /// <summary>
+        /// Calculates the Euclidean distance between two cells
+        /// </summary>
+        /// <param name="neighbor">The neighbor cell</param>
+        /// <param name="reward">The reward cell</param>
+        /// <returns>The Euclidean distance between the two cells</returns>
         public double GetHeuristicEstimate (Cell neighbor, Cell reward)
         {
-            // Return the euclidean distance
+            // Return the Euclidean distance
             return Math.Sqrt(Math.Pow(rewardCell.GetColumnIndex() - neighbor.GetColumnIndex(), 2) +
                              Math.Pow(rewardCell.GetRowIndex() - neighbor.GetRowIndex(), 2));
         }
