@@ -28,6 +28,10 @@ namespace AgentPathPlanning
         private const long UPDATE_FREQUENCY = 20; // Run the search steps this many milliseconds
         private const long BEST_PATH_UPDATE_FREQUENCY = 200; // Show the best path steps this many milliseconds
 
+        // Q-Learning
+        private const long NUMBER_OF_EPISODES = 100; // Number of episodes to run the agent simulation for Q-Learning
+        private const long MAX_EPISODE_STEPS = 150; // Maximum number of steps to run a Q-Learning episode
+
         // Cell size
         private const int CELL_HEIGHT = 60;
         private const int CELL_WIDTH = 60;
@@ -135,7 +139,7 @@ namespace AgentPathPlanning
             {
                 if (qLearningSearch == null)
                 {
-                    qLearningSearch = new QLearning(startingCell, rewardCell);
+                    qLearningSearch = new QLearning(gridWorld, startingCell, rewardCell);
                 }
 
                 searchTimer.Tick += new EventHandler(qLearningSearch.Run);
