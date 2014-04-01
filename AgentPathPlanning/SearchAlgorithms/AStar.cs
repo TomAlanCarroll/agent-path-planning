@@ -29,9 +29,11 @@ namespace AgentPathPlanning.SearchAlgorithms
             this.rewardCell = rewardCell;
             this.gridWorld = gridWorld;
 
+            this.currentCell.SetHScore(GetHeuristicEstimate(this.currentCell, rewardCell));
+
             this.currentCell.SetGScore(0);
 
-            double fScore = this.currentCell.GetGScore() + GetHeuristicEstimate(this.currentCell, rewardCell);
+            double fScore = this.currentCell.GetGScore() + this.currentCell.GetHScore();
 
             this.currentCell.SetFScore(fScore);
 
@@ -113,11 +115,15 @@ namespace AgentPathPlanning.SearchAlgorithms
             }
 
             // Calculate the scores
+            double hScore = GetHeuristicEstimate(neighbor, rewardCell);
+
+            neighbor.SetHScore(hScore);
+
             double gScore = currentCell.GetGScore() + 1;
 
             neighbor.SetGScore(gScore);
 
-            double fScore = neighbor.GetGScore() + GetHeuristicEstimate(neighbor, rewardCell);
+            double fScore = neighbor.GetGScore() + hScore;
 
             neighbor.SetFScore(fScore);
 

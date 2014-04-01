@@ -11,6 +11,7 @@ namespace AgentPathPlanning
     {
         private int rowIndex;
         private int columnIndex;
+        private double hScore;
         private double gScore;
         private double fScore;
         private bool isObstacle;
@@ -39,6 +40,16 @@ namespace AgentPathPlanning
         public int GetColumnIndex()
         {
             return columnIndex;
+        }
+
+        public double GetHScore()
+        {
+            return hScore;
+        }
+
+        public void SetHScore(double hScore)
+        {
+            this.hScore = hScore;
         }
 
         public double GetGScore()

@@ -214,6 +214,9 @@ namespace AgentPathPlanning
             {
                 // Stop the search
                 Stop();
+
+                AStarExport.Save(gridWorld.GetCells());
+
                 bestPath = aStarSearch.GetBestPath();
 
                 showBestPathTimer = new DispatcherTimer();
