@@ -3,7 +3,7 @@ agent-path-planning
 This program simulates agent path planning using A* and Q-Learning in a 2D grid.
 
 # Demo Video
-[![Watch a demo on YouTube](http://img.youtube.com/vi/LuxOfLlQ530/0.jpg)](http://www.youtube.com/watch?v=LuxOfLlQ530)
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=LuxOfLlQ530" target="_blank"><img src="http://img.youtube.com/vi/LuxOfLlQ530/0.jpg" alt="Watch a demo on YouTube" width="240" height="180" /></a>
 
 # How to Run
 1. Verify the .NET framework version 4.5 or higher is installed.
